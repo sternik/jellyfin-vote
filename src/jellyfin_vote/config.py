@@ -5,6 +5,8 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
+_PLACEHOLDER_KEYS = frozenset({"", "dev-secret-key-change-me", "change-me", "changeme"})
+
 
 @dataclass(frozen=True)
 class Config:
@@ -26,10 +28,16 @@ class Config:
                 + ", ".join(missing)
                 + ". Copy .env.example to .env and fill in your Jellyfin details."
             )
+        secret = os.environ["SECRET_KEY"]
+        if secret.lower().strip() in _PLACEHOLDER_KEYS:
+            raise RuntimeError(
+                "SECRET_KEY is set to a placeholder value. "
+                'Generate a real key: python -c "import secrets; print(secrets.token_hex(32))"'
+            )
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         data_dir = os.path.join(base_dir, "data")
         return Config(
-            SECRET_KEY=os.environ["SECRET_KEY"],
+            SECRET_KEY=secret,
             JELLYFIN_URL=os.environ["JELLYFIN_URL"].rstrip("/"),
             API_KEY=os.environ["API_KEY"],
             USER_ID=os.environ["USER_ID"],

@@ -15,18 +15,18 @@ log = logging.getLogger("jellyfin_vote")
 class JellyfinClient:
     def __init__(self, config: Config) -> None:
         self.url = config.JELLYFIN_URL
-        self.api_key = config.API_KEY
         self.user_id = config.USER_ID
-        # Shared HTTP client → connection pooling across successive poster fetches.
         self._http = httpx2.Client(
             timeout=20,
-            headers={"User-Agent": "jellyfin-vote/1.0"},
+            headers={
+                "User-Agent": "jellyfin-vote/1.0",
+                "X-Emby-Authorization": f'MediaBrowser Token="{config.API_KEY}"',
+            },
         )
 
     def list_items(self) -> list[dict[str, Any]]:
         endpoint = f"{self.url}/Users/{self.user_id}/Items"
         params = {
-            "api_key": self.api_key,
             "Recursive": "true",
             "IncludeItemTypes": "Movie,Series",
             "Fields": "Path,PrimaryImageAspectRatio,Type,Overview,ProviderIds,ProductionYear",
@@ -40,7 +40,7 @@ class JellyfinClient:
     def fetch_image(self, item_id: str) -> tuple[bytes, str] | None:
         resp = self._http.get(
             f"{self.url}/Items/{item_id}/Images/Primary",
-            params={"fillHeight": 400, "api_key": self.api_key},
+            params={"fillHeight": 400},
         )
         if not resp.is_success:
             return None

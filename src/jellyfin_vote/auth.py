@@ -42,14 +42,16 @@ def require_auth(f):
     return inner
 
 
-def register_auth_routes(app, config: Config) -> None:
+def register_auth_routes(app, config: Config, limiter=None) -> None:
     @app.route("/api/login", methods=["POST"])
+    @limiter.limit("5/minute")
     def login():
         data = request.json or {}
         username = data.get("username", "")
         password = data.get("password", "")
         users = load_users(config)
         if username in users and users[username] == password:
+            session.clear()
             session.permanent = True
             session["user"] = username
             return jsonify({"user": username})
