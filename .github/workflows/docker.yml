@@ -37,7 +37,7 @@ jobs:
           tags: |
             type=ref,event=tag
             type=raw,value=sha-{{sha}}.{{date 'YYYYMMDD'}}
-            type=raw,value={{inputs.tag}},enable=${{ github.event_name == 'workflow_dispatch' }}
+            type=raw,value=${{ inputs.tag || 'latest' }},enable=${{ github.event_name == 'workflow_dispatch' }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
