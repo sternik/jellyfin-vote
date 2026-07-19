@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-import requests
+import httpx2
 
 from .config import Config
 
@@ -17,6 +17,11 @@ class JellyfinClient:
         self.url = config.JELLYFIN_URL
         self.api_key = config.API_KEY
         self.user_id = config.USER_ID
+        # Shared HTTP client → connection pooling across successive poster fetches.
+        self._http = httpx2.Client(
+            timeout=20,
+            headers={"User-Agent": "jellyfin-vote/1.0"},
+        )
 
     def list_items(self) -> list[dict[str, Any]]:
         endpoint = f"{self.url}/Users/{self.user_id}/Items"
@@ -26,19 +31,18 @@ class JellyfinClient:
             "IncludeItemTypes": "Movie,Series",
             "Fields": "Path,PrimaryImageAspectRatio,Type,Overview,ProviderIds,ProductionYear",
         }
-        resp = requests.get(endpoint, params=params, timeout=20)
+        resp = self._http.get(endpoint, params=params)
         if resp.status_code != 200:
             log.error("Jellyfin list_items failed: %s %s", resp.status_code, resp.text[:200])
             return []
         return resp.json().get("Items", [])
 
     def fetch_image(self, item_id: str) -> tuple[bytes, str] | None:
-        resp = requests.get(
+        resp = self._http.get(
             f"{self.url}/Items/{item_id}/Images/Primary",
             params={"fillHeight": 400, "api_key": self.api_key},
-            timeout=20,
         )
-        if not resp.ok:
+        if not resp.is_success:
             return None
         return resp.content, resp.headers.get("Content-Type", "image/jpeg")
 
