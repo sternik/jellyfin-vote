@@ -36,7 +36,7 @@ class FakeJellyfinClient:
 
 @pytest.fixture()
 def app(tmp_path, monkeypatch):  # noqa: C901
-    """Flask app with isolated data dir and mocked Jellyfin API via requests."""
+    """Flask app with isolated data dir and mocked Jellyfin API via httpx2."""
     data_dir = tmp_path / "data"
     data_dir.mkdir()
     (data_dir / "cache").mkdir()
@@ -52,17 +52,22 @@ def app(tmp_path, monkeypatch):  # noqa: C901
     with open(data_dir / "users.json", "w", encoding="utf-8") as f:
         json.dump({"alice": "pw1", "bob": "pw2"}, f)
 
-    # Mock requests.get used by JellyfinClient.
+    # Prepare the fake HTTP transport used by JellyfinClient.list_items / fetch_image.
     items_path = FIXTURES / "jellyfin_items.json"
     with open(items_path, encoding="utf-8") as f:
         items_payload = json.load(f)
+
+    headers_like = {"Content-Type": "image/jpeg"}
 
     class _Response:
         def __init__(self, status_code, payload, headers=None):
             self.status_code = status_code
             self._payload = payload
             self.headers = headers or {}
-            self.ok = 200 <= status_code < 300
+            # httpx2 uses is_success, not ok.
+            self.is_success = 200 <= status_code < 300
+            # Some legacy code paths in tests check `.ok` too.
+            self.ok = self.is_success
 
         def json(self):
             return self._payload
@@ -75,12 +80,20 @@ def app(tmp_path, monkeypatch):  # noqa: C901
         def text(self):
             return ""
 
-    def fake_get(url, params=None, timeout=None, stream=None):
-        if "/Items/" in url and "/Images/Primary" in url:
-            return _Response(404, None)
-        return _Response(200, items_payload)
+    class _FakeHttpxClient:
+        def __init__(self, *args, **kwargs):
+            pass
 
-    monkeypatch.setattr("jellyfin_vote.jellyfin.requests.get", fake_get)
+        def get(self, url, params=None):
+            if "/Items/" in str(url) and "/Images/Primary" in str(url):
+                return _Response(404, None)
+            return _Response(200, items_payload, headers_like)
+
+        def close(self):
+            pass
+
+    # Replace httpx2.Client so JellyfinClient gets our fake transport under the hood.
+    monkeypatch.setattr("jellyfin_vote.jellyfin.httpx2.Client", _FakeHttpxClient)
     app = create_app()
     app.testing = True
     yield app
