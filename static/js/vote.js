@@ -1,8 +1,15 @@
 let currentUser = null;
 let mediaItems = [], currentIndex = 0, votes = {keep: [], remove: []};
 let dragStartX = 0, dragging = false, dragX = 0;
+let progressSummary = null;
 
-const actionsHtml = `<div class="progress"><span id="currentIndex">0</span>/<span id="totalCount">0</span> &middot; removed <span id="removeCount">0</span></div><button class="icon-btn" id="refreshBtn" onclick="refreshMedia()">Refresh</button>`;
+const actionsHtml = `<div class="progress" id="progressSummary">0/0 · removed 0</div><button class="icon-btn" id="refreshBtn" onclick="refreshMedia()">Refresh</button>`;
+
+function updateProgress() {
+    if (!progressSummary) return;
+    const shown = currentIndex >= mediaItems.length ? mediaItems.length : currentIndex;
+    progressSummary.textContent = `${shown}/${mediaItems.length} · removed ${votes.remove.length}`;
+}
 
 async function refreshMedia() {
     const btn = document.getElementById('refreshBtn');
@@ -17,6 +24,7 @@ async function refreshMedia() {
 async function init() {
     currentUser = await mountShell('vote', 'Vote', actionsHtml);
     if (!currentUser) return;
+    progressSummary = document.getElementById('progressSummary');
     document.querySelector('.main').classList.add('vote-page');
     document.querySelector('.topbar').classList.add('vote-topbar');
 
@@ -47,8 +55,8 @@ async function saveVotes() {
 
 function renderCard() {
     const content = document.getElementById('content');
+    updateProgress();
     if (currentIndex >= mediaItems.length) {
-        document.querySelector('.topbar-actions').style.display = 'none';
         content.className = 'content';
         content.innerHTML = `<div class="empty">
             <h2>You're done!</h2>
@@ -88,9 +96,6 @@ function renderCard() {
             <div class="hint-pill" id="removeHint">REMOVE</div>
         </div>`;
     attachDrag();
-    document.getElementById('currentIndex').textContent = currentIndex + 1;
-    document.getElementById('totalCount').textContent = mediaItems.length;
-    document.getElementById('removeCount').textContent = votes.remove.length;
 }
 
 function swipe(action) {
@@ -99,8 +104,7 @@ function swipe(action) {
     const m = mediaItems[currentIndex];
     if (action === 'keep') { card.classList.add('swiping-left'); votes.keep.push(m.id); }
     else { card.classList.add('swiping-right'); votes.remove.push(m.id); }
-    document.getElementById('currentIndex').textContent = currentIndex + 1;
-    document.getElementById('removeCount').textContent = votes.remove.length;
+    updateProgress();
     saveVotes();
     setTimeout(() => { currentIndex++; renderCard(); }, 350);
 }
