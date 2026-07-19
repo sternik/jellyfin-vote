@@ -1,0 +1,44 @@
+{
+  "Items": [
+    {
+      "Id": "item1",
+      "Name": "Test Movie",
+      "Type": "Movie",
+      "ProductionYear": 2020,
+      "Overview": "A good movie",
+      "ProviderIds": {"IMDb": "tt0000001"}
+    },
+    {
+      "Id": "item2",
+      "Name": "Test Movie 2",
+      "Type": "Movie",
+      "ProductionYear": 2018,
+      "Overview": "Not great",
+      "ProviderIds": {}
+    },
+    {
+      "Id": "s1",
+      "Name": "Test Series",
+      "Type": "Series",
+      "ProductionYear": 2021,
+      "Overview": "A series",
+      "ProviderIds": {"IMDb": "tt0000002"}
+    },
+    {
+      "Id": "s2",
+      "Name": "Test Series 2",
+      "Type": "Series",
+      "ProductionYear": 2019,
+      "Overview": "Ehh",
+      "ProviderIds": {}
+    },
+    {
+      "Id": "item3",
+      "Name": "Another Movie",
+      "Type": "Movie",
+      "ProductionYear": 2022,
+      "Overview": "",
+      "ProviderIds": {}
+    }
+  ]
+}

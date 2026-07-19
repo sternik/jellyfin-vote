@@ -1,0 +1,15 @@
+.env
+.cache/
+__pycache__/
+*.pyc
+.venv/
+data/cache/
+data/media.json
+data/users*.json
+data/votes_*.json
+.pytest_cache/
+.ruff_cache/
+.coverage
+dist/
+build/
+*.egg-info/
