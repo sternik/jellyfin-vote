@@ -14,7 +14,8 @@ screens
 .gitignore
 .pre-commit-config.yaml
 tests
-*.md
+CONTRIBUTING.md
 .python-version
 Dockerfile
 docker-compose.yml
+docker-compose.prod.yml
