@@ -119,14 +119,30 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
 ### 5. Deployment (Docker)
 
+#### Option A — Pull the pre-built image from ghcr.io
+
 ```bash
 cp .env.example .env         # fill in JELLYFIN_URL/API_KEY/USER_ID/SECRET_KEY
+# seed data/users.json with accounts
+docker compose -f docker-compose.prod.yml up --detach
+# -> http://localhost:8000
+```
+
+The pre-built image is published to
+[ghcr.io/sternik/jellyfin-vote](https://github.com/sternik/jellyfin-vote/pkgs/container/jellyfin-vote)
+on every release tag (`v*`) and on manual dispatch. `:latest` is updated
+manually via the Actions tab → *Docker* → *Run workflow*.
+
+#### Option B — Build locally
+
+```bash
+cp .env.example .env
 # seed data/users.json with accounts
 docker compose up --build --detach
 # -> http://localhost:8000
 ```
 
-The compose file mounts `./data` as a volume, so users, votes, media cache,
+Both compose files mount `./data` as a volume, so users, votes, media cache,
 and posters survive container restarts.
 
 #### Production (gunicorn, no Docker)
