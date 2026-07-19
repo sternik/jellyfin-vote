@@ -17,6 +17,9 @@
     --radius-sm: 10px;
     --shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
     --sidebar-w: 240px;
+    --fs-topbar: 0.85rem;
+    --lh-topbar: 1.4;
+    --topbar-h: 72px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -102,29 +105,32 @@ svg { width: 20px; height: 20px; flex: none; }
 
 .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .topbar {
-    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
-    padding: 18px 28px; border-bottom: 1px solid var(--border);
-    min-height: 70px; box-sizing: border-box;
+    display: flex; align-items: center; gap: 16px;
+    padding: 12px 28px; border-bottom: 1px solid var(--border);
+    min-height: var(--topbar-h); box-sizing: border-box;
 }
 .page-title { font-size: 1.3rem; font-weight: 700; flex: none; }
-.topbar-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex: 1; }
+.topbar-actions {
+    display: flex; align-items: center; gap: 10px; flex: 1;
+    flex-wrap: nowrap; overflow-x: auto; min-width: 0;
+}
 .topbar-actions .spacer { margin-left: auto; }
 .content { padding: 26px 28px 60px; flex: 1; }
 
-/* ---------- Topbar widgets ---------- */
-.progress { color: var(--text-dim); font-size: 0.9rem; }
+/* ---------- Topbar widgets (unified font-size/line-height) ---------- */
+.progress { color: var(--text-dim); font-size: var(--fs-topbar); line-height: var(--lh-topbar); flex: none; }
 .icon-btn {
     padding: 7px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong);
-    background: var(--surface); color: var(--text); font-size: 0.85rem; cursor: pointer;
+    background: var(--surface); color: var(--text); font-size: var(--fs-topbar); line-height: var(--lh-topbar);
+    cursor: pointer; flex: none;
 }
 .icon-btn:hover { background: var(--surface-2); }
 
-.chips { display: flex; gap: 8px; }
-.topbar-actions .chips + .chips { margin-top: 6px; }
-.topbar-actions { gap: 6px 10px; }
+.chips { display: flex; gap: 8px; flex: none; }
 .chip {
-    padding: 7px 16px; border-radius: 999px; cursor: pointer; font-size: 0.85rem;
+    padding: 7px 16px; border-radius: 999px; cursor: pointer; font-size: var(--fs-topbar); line-height: var(--lh-topbar);
     border: 1px solid var(--border-strong); background: transparent; color: var(--text-dim); font-family: inherit;
+    flex: none;
 }
 .chip:hover { color: var(--text); border-color: var(--text-faint); }
 .chip.active { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
@@ -227,14 +233,11 @@ svg { width: 20px; height: 20px; flex: none; }
     .topbar { padding: 12px 14px; gap: 10px; }
     .page-title { font-size: 1.1rem; }
     .topbar-actions { width: 100%; gap: 8px; }
-    .progress { font-size: 0.82rem; }
 
     /* Vote page: fit viewport, card scales, buttons always visible */
     html:has(.vote-page), body:has(.vote-page) { height: 100%; overflow: hidden; }
     #shell:has(.vote-page) { height: 100dvh; min-height: 0; overflow: hidden; }
     .vote-page { flex: 1 1 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
-    .vote-topbar { padding: 8px 12px; flex: none; }
-    .vote-topbar .page-title { display: none; }
     .vote-content {
         flex: 1; min-height: 0; overflow: hidden;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
