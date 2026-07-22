@@ -16,6 +16,8 @@ RUN uv sync --frozen --no-dev --no-install-project
 
 COPY src ./src
 COPY app.py ./
+COPY templates ./templates
+COPY static ./static
 RUN uv sync --frozen --no-dev
 
 # ---------- Runtime ----------
