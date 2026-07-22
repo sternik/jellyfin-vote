@@ -37,4 +37,4 @@ RUN mkdir -p /app/data && chown -R jellyvote:jellyvote /app/data
 USER jellyvote
 EXPOSE 8000
 
-CMD ["uv", "run", "gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "jellyfin_vote:create_app()"]
+CMD ["/app/.venv/bin/gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "jellyfin_vote:create_app()"]
