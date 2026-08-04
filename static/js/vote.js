@@ -85,11 +85,11 @@ function renderCard() {
                 </div>
             </div>
             <div class="vote-actions">
-                <button class="vote-btn keep" onclick="swipe('keep')" aria-label="Keep">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H7"/></svg>
-                </button>
                 <button class="vote-btn remove" onclick="swipe('remove')" aria-label="Remove">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H17"/></svg>
+                </button>
+                <button class="vote-btn keep" onclick="swipe('keep')" aria-label="Keep">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H7"/></svg>
                 </button>
             </div>
             <div class="hint-pill" id="keepHint">KEEP</div>
@@ -102,8 +102,8 @@ function swipe(action) {
     const card = document.getElementById('card');
     if (!card || card.classList.contains('swiping-left') || card.classList.contains('swiping-right')) return;
     const m = mediaItems[currentIndex];
-    if (action === 'keep') { card.classList.add('swiping-left'); votes.keep.push(m.id); }
-    else { card.classList.add('swiping-right'); votes.remove.push(m.id); }
+    if (action === 'keep') { card.classList.add('swiping-right'); votes.keep.push(m.id); }
+    else { card.classList.add('swiping-left'); votes.remove.push(m.id); }
     updateProgress();
     saveVotes();
     setTimeout(() => { currentIndex++; renderCard(); }, 350);
@@ -120,16 +120,16 @@ function attachDrag() {
         if (!dragging) return;
         dragX = x - dragStartX;
         card.style.transform = `translateX(${dragX}px) rotate(${dragX / 20}deg)`;
-        if (dragX < -60) { keepHint.classList.add('show'); removeHint.classList.remove('show'); }
-        else if (dragX > 60) { removeHint.classList.add('show'); keepHint.classList.remove('show'); }
+        if (dragX < -60) { removeHint.classList.add('show'); keepHint.classList.remove('show'); }
+        else if (dragX > 60) { keepHint.classList.add('show'); removeHint.classList.remove('show'); }
         else { keepHint.classList.remove('show'); removeHint.classList.remove('show'); }
     }
     function up() {
         if (!dragging) return;
         dragging = false;
         card.classList.remove('grabbing');
-        if (dragX < -120) { swipe('keep'); }
-        else if (dragX > 120) { swipe('remove'); }
+        if (dragX < -120) { swipe('remove'); }
+        else if (dragX > 120) { swipe('keep'); }
         else { card.style.transform = ''; keepHint.classList.remove('show'); removeHint.classList.remove('show'); }
         dragX = 0;
     }

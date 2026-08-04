@@ -179,8 +179,8 @@ svg { width: 20px; height: 20px; flex: none; }
     padding: 8px 18px; border-radius: 10px; font-weight: 800; font-size: 0.9rem; letter-spacing: 1px;
     border: 3px solid; opacity: 0; pointer-events: none; transition: opacity 0.15s, transform 0.15s;
 }
-#keepHint { left: 14px; color: var(--green); border-color: var(--green); }
-#removeHint { right: 14px; color: var(--accent); border-color: var(--accent); }
+#keepHint { right: 14px; color: var(--green); border-color: var(--green); }
+#removeHint { left: 14px; color: var(--accent); border-color: var(--accent); }
 .hint-pill.show { opacity: 1; transform: translateY(-50%) scale(1); }
 
 @keyframes swipeLeft { to { transform: translateX(-150%) rotate(-18deg); opacity: 0; } }
