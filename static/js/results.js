@@ -33,7 +33,11 @@ function setTypeFilter(t) {
 
 function render() {
     const allItems = removeItems.filter(r => mediaMap[r.id]);
-    const items = allItems.filter(m => currentTypeFilter === 'all' || (m.type || 'Movie') === currentTypeFilter);
+    const items = allItems.filter(r => {
+        if (currentTypeFilter === 'all') return true;
+        const m = mediaMap[r.id];
+        return m && (m.type || 'Movie') === currentTypeFilter;
+    });
     items.sort((a, b) => (mediaMap[a.id]?.name || '').localeCompare(mediaMap[b.id]?.name || ''));
     const summary = document.getElementById('resultsSummary');
     if (summary) {
