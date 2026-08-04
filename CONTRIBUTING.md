@@ -21,11 +21,8 @@ Create a `.env` from the example and fill in Jellyfin settings:
 cp .env.example .env
 ```
 
-Seed `data/users.json` with the accounts you want to be able to log in:
-
-```json
-{"alice": "pw1", "bob": "pw2"}
-```
+Authentication is handled via the Jellyfin API — users log in with their
+existing Jellyfin credentials. No local user accounts needed.
 
 ## Running the app
 
@@ -66,7 +63,7 @@ pytest
 src/jellyfin_vote/   backend modules
 templates/           Jinja-style HTML pages (currently static HTMLs)
 static/css|js|img/   frontend assets
-data/                runtime data (users, votes, media cache)
+data/                runtime data (votes, media cache, posters)
 tests/               pytest suite with fixtures
 ```
 

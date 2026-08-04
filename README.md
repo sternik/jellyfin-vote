@@ -25,8 +25,8 @@ agrees.
 
 ## Features
 
-- **Swipe to vote** — drag the card left to keep, right to remove, or tap the
-  thumbs up / thumbs down buttons.
+- **Swipe to vote** — drag the card left to remove, right to keep, or tap the
+  thumbs down / thumbs up buttons.
 - **Movie / Series badges** — every card carries its type badge, year, and a
   `Details` deep-link into Jellyfin.
 - **My Votes** — review and flip past votes at any time; filter independently
@@ -148,8 +148,8 @@ uv run gunicorn --bind 0.0.0.0:8000 --workers 2 "jellyfin_vote:create_app()"
 ## How Voting Works
 
 1. Each user swipes through the full Jellyfin library.
-2. **thumbs up** (or drag the card left) = keep, **thumbs down** (or drag
-   right) = remove.
+2. **thumbs down** (or drag the card left) = remove, **thumbs up** (or drag
+   right) = keep.
 3. Votes are saved per user on the server (under `data/votes_<user>.json`).
 4. An item is marked for deletion only when **every** user voted to remove it.
 5. Check the **Results** page to see agreed-upon removals — use the type
@@ -190,7 +190,10 @@ jellyfin-vote/
 ├── tests/                     # pytest suite with fixtures
 ├── Dockerfile
 ├── docker-compose.yml
-└── .github/workflows/ci.yml   # ruff + black + pytest on push/PR
+├── docker-compose.prod.yml
+└── .github/workflows/
+    ├── ci.yml                   # ruff + black + pytest on push/PR
+    └── docker.yml               # ghcr image build
 ```
 
 ## License
