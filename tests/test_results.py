@@ -11,7 +11,8 @@ def test_results_empty_without_votes(populated_media):
 
 def test_results_requires_all_users_agree(populated_media, authed_client_b):
     # populated_media = alice session; authed_client_b = bob session
-    # Both must vote remove on the same item for it to appear in results.
+    # Results counts voters by votes_*.json files.
+    # With only alice voting, she is the only voter → agreement.
     payload = {"keep": [], "remove": ["item1"]}
     assert (
         populated_media.post(
@@ -22,10 +23,11 @@ def test_results_requires_all_users_agree(populated_media, authed_client_b):
         == 200
     )
 
-    # Only alice voted remove — no agreement yet.
-    assert populated_media.get("/api/results").get_json() == []
+    # Only alice voted — she is the sole voter, so item1 appears.
+    ids = [item["id"] for item in populated_media.get("/api/results").get_json()]
+    assert ids == ["item1"]
 
-    # Bob also votes remove on item1 = agreement.
+    # Bob also votes remove on item1 — still agreement (2 voters, 2 agree).
     assert (
         authed_client_b.post(
             "/api/votes/bob",

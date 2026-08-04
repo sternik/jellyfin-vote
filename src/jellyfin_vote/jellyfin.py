@@ -23,6 +23,32 @@ class JellyfinClient:
                 "X-Emby-Authorization": f'MediaBrowser Token="{config.API_KEY}"',
             },
         )
+        # Separate client for user auth (no API key — uses username/password).
+        self._auth_http = httpx2.Client(
+            timeout=10,
+            headers={
+                "User-Agent": "jellyfin-vote/1.0",
+                "Authorization": 'MediaBrowser Client="jellyfin-vote", Device="web", DeviceId="jellyfin-vote", Version="1.0.0"',
+            },
+        )
+
+    def authenticate_user(self, username: str, password: str) -> dict | None:
+        """Authenticate with Jellyfin and return user info or None on failure."""
+        log.info("Jellyfin auth attempt for user: %s", username)
+        resp = self._auth_http.post(
+            f"{self.url}/Users/AuthenticateByName",
+            json={"Username": username, "Pw": password},
+        )
+        log.info("Jellyfin auth response: %s %s", resp.status_code, resp.text[:300])
+        if resp.status_code != 200:
+            log.debug("Jellyfin auth failed for %s: %s", username, resp.status_code)
+            return None
+        data = resp.json()
+        return {
+            "user": data.get("User", {}).get("Name", username),
+            "user_id": data.get("User", {}).get("Id"),
+            "access_token": data.get("AccessToken"),
+        }
 
     def list_items(self) -> list[dict[str, Any]]:
         endpoint = f"{self.url}/Users/{self.user_id}/Items"

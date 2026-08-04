@@ -36,6 +36,8 @@ agrees.
   `All types` / `Movies` / `Series`.
 - **Multi-user support** — each user keeps their own votes; an item is only
   flagged for deletion when *all* users voted to remove it.
+- **Jellyfin authentication** — log in with your existing Jellyfin credentials;
+  no separate user accounts to manage. Passwords are never stored locally.
 - **Jellyfin integration** — pulls the library (movies + series), posters, and
   metadata directly from Jellyfin; one-click `Details` opens the item in the
   Jellyfin web client.
@@ -83,20 +85,13 @@ USER_ID=your-jellyfin-user-id
 > the URL, or use the Jellyfin API.
 
 `SECRET_KEY` is **required** — the app will refuse to start without it. This
-prevents accidentally running with the dev placeholder.
+prevents accidentally running with the dev placeholder. Generate one with:
 
-### 3. Create user accounts
-
-Edit `data/users.json` to define who can log in:
-
-```json
-{
-  "alice": "password123",
-  "bob": "secret456"
-}
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-### 4. Install & run
+### 3. Install & run
 
 #### Option A — `uv` (recommended)
 
@@ -123,7 +118,6 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
 ```bash
 cp .env.example .env         # fill in JELLYFIN_URL/API_KEY/USER_ID/SECRET_KEY
-# seed data/users.json with accounts
 docker compose -f docker-compose.prod.yml up --detach
 # -> http://localhost:8000
 ```
@@ -137,12 +131,11 @@ manually via the Actions tab → *Docker* → *Run workflow*.
 
 ```bash
 cp .env.example .env
-# seed data/users.json with accounts
 docker compose up --build --detach
 # -> http://localhost:8000
 ```
 
-Both compose files mount `./data` as a volume, so users, votes, media cache,
+Both compose files mount `./data` as a volume, so votes, media cache,
 and posters survive container restarts.
 
 #### Production (gunicorn, no Docker)

@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import json
 import logging
-import os
 import re
 from functools import wraps
 
@@ -15,17 +13,6 @@ from .config import Config
 log = logging.getLogger("jellyfin_vote")
 
 USERNAME_RE = re.compile(r"^[a-zA-Z0-9_.-]+$")
-
-
-def load_users(config: Config) -> dict[str, str]:
-    if not os.path.exists(config.USERS_FILE):
-        return {}
-    try:
-        with open(config.USERS_FILE, encoding="utf-8") as f:
-            return json.load(f)
-    except (json.JSONDecodeError, OSError):
-        log.warning("users file unreadable: %s", config.USERS_FILE)
-        return {}
 
 
 def is_valid_username(name: str) -> bool:
@@ -42,19 +29,23 @@ def require_auth(f):
     return inner
 
 
-def register_auth_routes(app, config: Config, limiter=None) -> None:
+def register_auth_routes(app, config: Config, limiter=None, client=None) -> None:
     @app.route("/api/login", methods=["POST"])
     @limiter.limit("5/minute")
     def login():
         data = request.json or {}
         username = data.get("username", "")
         password = data.get("password", "")
-        users = load_users(config)
-        if username in users and users[username] == password:
+        if not username:
+            return jsonify({"error": "Invalid"}), 401
+        # Authenticate against Jellyfin server.
+        result = client.authenticate_user(username, password)
+        if result:
             session.clear()
             session.permanent = True
-            session["user"] = username
-            return jsonify({"user": username})
+            session["user"] = result["user"]
+            session["jellyfin_user_id"] = result.get("user_id")
+            return jsonify({"user": result["user"]})
         return jsonify({"error": "Invalid"}), 401
 
     @app.route("/api/logout")

@@ -8,7 +8,7 @@ import os
 
 from flask import jsonify
 
-from .auth import load_users, require_auth
+from .auth import require_auth
 from .config import Config
 
 log = logging.getLogger("jellyfin_vote")
@@ -19,9 +19,6 @@ def register_results_routes(app, config: Config) -> None:
     @require_auth
     def results():
         data_dir = os.path.dirname(config.USERS_FILE)
-        users = load_users(config)
-        total_users = len(users)
-        remove_counts: dict[str, int] = {}
 
         valid_ids: set[str] = set()
         if os.path.exists(config.MEDIA_FILE):
@@ -35,9 +32,13 @@ def register_results_routes(app, config: Config) -> None:
         if not os.path.isdir(data_dir):
             return jsonify([])
 
+        remove_counts: dict[str, int] = {}
+        total_voters = 0
+
         for fname in os.listdir(data_dir):
             if not (fname.startswith("votes_") and fname.endswith(".json")):
                 continue
+            total_voters += 1
             try:
                 with open(os.path.join(data_dir, fname), encoding="utf-8") as f:
                     data = json.load(f)
@@ -48,5 +49,8 @@ def register_results_routes(app, config: Config) -> None:
             except (json.JSONDecodeError, OSError):
                 continue
 
-        agreed = [iid for iid, count in remove_counts.items() if count == total_users]
+        if total_voters == 0:
+            return jsonify([])
+
+        agreed = [iid for iid, count in remove_counts.items() if count == total_voters]
         return jsonify([{"id": iid} for iid in agreed])

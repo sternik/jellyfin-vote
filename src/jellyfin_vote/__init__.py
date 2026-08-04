@@ -51,7 +51,7 @@ def create_app() -> Flask:
     from .votes import register_votes_routes
 
     client = app.config.get("JELLYFIN_CLIENT") or JellyfinClient(config)
-    register_auth_routes(app, config, limiter)
+    register_auth_routes(app, config, limiter, client)
     register_media_routes(app, config, client)
     register_votes_routes(app, config)
     register_results_routes(app, config)

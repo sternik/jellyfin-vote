@@ -11,6 +11,9 @@ from jellyfin_vote import create_app
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
+# Test users (replaces users.json — auth now goes through Jellyfin API).
+TEST_USERS = {"alice": "pw1", "bob": "pw2"}
+
 
 class FakeJellyfinClient:
     """In-memory Jellyfin client pulling from fixture JSON."""
@@ -25,6 +28,11 @@ class FakeJellyfinClient:
         return [dict(item) for item in self._items]
 
     def fetch_image(self, item_id):
+        return None
+
+    def authenticate_user(self, username, password):
+        if username in TEST_USERS and TEST_USERS[username] == password:
+            return {"user": username, "user_id": f"uid-{username}", "access_token": "tok"}
         return None
 
     @staticmethod
@@ -48,9 +56,6 @@ def app(tmp_path, monkeypatch):  # noqa: C901
     monkeypatch.setenv("MEDIA_FILE", str(data_dir / "media.json"))
     monkeypatch.setenv("USERS_FILE", str(data_dir / "users.json"))
     monkeypatch.setenv("CACHE_DIR", str(data_dir / "cache"))
-
-    with open(data_dir / "users.json", "w", encoding="utf-8") as f:
-        json.dump({"alice": "pw1", "bob": "pw2"}, f)
 
     # Prepare the fake HTTP transport used by JellyfinClient.list_items / fetch_image.
     items_path = FIXTURES / "jellyfin_items.json"
@@ -88,6 +93,21 @@ def app(tmp_path, monkeypatch):  # noqa: C901
             if "/Items/" in str(url) and "/Images/Primary" in str(url):
                 return _Response(404, None)
             return _Response(200, items_payload, headers_like)
+
+        def post(self, url, json=None):
+            if "/Users/AuthenticateByName" in str(url):
+                username = (json or {}).get("Username", "")
+                password = (json or {}).get("Pw", "")
+                if username in TEST_USERS and TEST_USERS[username] == password:
+                    return _Response(
+                        200,
+                        {
+                            "User": {"Name": username, "Id": f"uid-{username}"},
+                            "AccessToken": "tok",
+                        },
+                    )
+                return _Response(401, {})
+            return _Response(401, {})
 
         def close(self):
             pass
