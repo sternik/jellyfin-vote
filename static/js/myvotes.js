@@ -54,12 +54,14 @@ function render() {
         content.innerHTML = '<div class="empty"><h2>Nothing here</h2><p>No items match these filters.</p><a href="/" class="btn-secondary">Go to Vote</a></div>';
         return;
     }
+    items.sort((a, b) => a.name.localeCompare(b.name));
     content.innerHTML = `<div class="grid">${items.map(cardHtml).join('')}</div>`;
 }
 
 function cardHtml(m) {
     const status = allVotes.keep.includes(m.id) ? 'keep' : 'remove';
-    const label = status === 'keep' ? 'Keep' : 'Remove';
+    const currentLabel = status === 'keep' ? 'Keep' : 'Remove';
+    const actionLabel = status === 'keep' ? 'Remove' : 'Keep';
     const meta = [m.type === 'Series' ? 'Series' : 'Movie', m.year].filter(Boolean).join(' · ');
     return `<div class="grid-card">
         <div class="poster">
@@ -71,7 +73,10 @@ function cardHtml(m) {
             ${meta ? `<div class="grid-meta">${meta}</div>` : ''}
             <div class="grid-footer">
                 <a class="card-link" href="${m.link}" target="_blank" rel="noopener">Details</a>
-                <button class="toggle-btn ${status}" onclick="toggle('${m.id}')">${label}</button>
+                <button class="toggle-btn ${status}" onclick="toggle('${m.id}')">
+                    <span class="label-current">${currentLabel}</span>
+                    <span class="label-action">${actionLabel}</span>
+                </button>
             </div>
         </div>
     </div>`;

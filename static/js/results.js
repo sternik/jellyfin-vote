@@ -34,6 +34,7 @@ function setTypeFilter(t) {
 function render() {
     const allItems = removeItems.filter(r => mediaMap[r.id]);
     const items = allItems.filter(m => currentTypeFilter === 'all' || (m.type || 'Movie') === currentTypeFilter);
+    items.sort((a, b) => (mediaMap[a.id]?.name || '').localeCompare(mediaMap[b.id]?.name || ''));
     const summary = document.getElementById('resultsSummary');
     if (summary) {
         if (currentTypeFilter === 'all') summary.textContent = `${allItems.length} item${allItems.length === 1 ? '' : 's'} to remove · everyone agreed`;

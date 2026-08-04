@@ -208,11 +208,21 @@ svg { width: 20px; height: 20px; flex: none; }
 .toggle-btn {
     padding: 6px 14px; border: none; border-radius: 8px; cursor: pointer;
     font-size: 0.78rem; font-weight: 700; font-family: inherit;
+    transition: background 0.15s, color 0.15s;
 }
 .toggle-btn.keep { background: var(--green); color: #0d0f1a; }
 .toggle-btn.remove { background: var(--red); color: #fff; }
-.toggle-btn.keep:hover { background: #22c55e; }
-.toggle-btn.remove:hover { background: #dc2626; }
+
+.toggle-btn .label-current { display: inline; }
+.toggle-btn .label-action { display: none; }
+
+.toggle-btn.keep:hover { background: var(--red); color: #fff; }
+.toggle-btn.keep:hover .label-current { display: none; }
+.toggle-btn.keep:hover .label-action { display: inline; }
+
+.toggle-btn.remove:hover { background: var(--green); color: #0d0f1a; }
+.toggle-btn.remove:hover .label-current { display: none; }
+.toggle-btn.remove:hover .label-action { display: inline; }
 
 /* ---------- Empty states ---------- */
 .empty { text-align: center; padding: 50px 20px; max-width: 420px; margin: 0 auto; }
