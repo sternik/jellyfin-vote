@@ -20,7 +20,7 @@ class JellyfinClient:
             timeout=20,
             headers={
                 "User-Agent": "jellyfin-vote/1.0",
-                "X-Emby-Authorization": f'MediaBrowser Token="{config.API_KEY}"',
+                "Authorization": f'MediaBrowser Token="{config.API_KEY}"',
             },
         )
         # Separate client for user auth (no API key — uses username/password).
