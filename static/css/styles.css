@@ -183,6 +183,12 @@ svg { width: 20px; height: 20px; flex: none; }
 #removeHint { left: 14px; color: var(--accent); border-color: var(--accent); }
 .hint-pill.show { opacity: 1; transform: translateY(-50%) scale(1); }
 
+.kbd-hint {
+    text-align: center; margin-top: 10px;
+    color: var(--text-faint); font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
 @keyframes swipeLeft { to { transform: translateX(-150%) rotate(-18deg); opacity: 0; } }
 @keyframes swipeRight { to { transform: translateX(150%) rotate(18deg); opacity: 0; } }
 .swiping-left { animation: swipeLeft 0.35s forwards; }

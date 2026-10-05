@@ -2,6 +2,7 @@ let currentUser = null;
 let mediaItems = [], currentIndex = 0, votes = {keep: [], remove: []};
 let dragStartX = 0, dragging = false, dragX = 0;
 let progressSummary = null;
+let keyListenerAttached = false;
 
 const actionsHtml = `<div class="progress" id="progressSummary">0/0 · removed 0</div><button class="icon-btn" id="refreshBtn" onclick="refreshMedia()">Refresh</button>`;
 
@@ -56,6 +57,7 @@ async function saveVotes() {
 function renderCard() {
     const content = document.getElementById('content');
     updateProgress();
+    attachKeyboard();
     if (currentIndex >= mediaItems.length) {
         content.className = 'content';
         content.innerHTML = `<div class="empty">
@@ -94,7 +96,9 @@ function renderCard() {
             </div>
             <div class="hint-pill" id="keepHint">KEEP</div>
             <div class="hint-pill" id="removeHint">REMOVE</div>
-        </div>`;
+        </div>
+        <div class="kbd-hint">← remove · → keep</div>
+    `;
     attachDrag();
 }
 
@@ -140,6 +144,15 @@ function attachDrag() {
     card.addEventListener('touchstart', e => down(e.touches[0].clientX), {passive: true});
     window.addEventListener('touchmove', e => move(e.touches[0].clientX), {passive: true});
     window.addEventListener('touchend', up);
+}
+
+function attachKeyboard() {
+    if (keyListenerAttached) return;
+    keyListenerAttached = true;
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft' || e.key === 'h') swipe('remove');
+        if (e.key === 'ArrowRight' || e.key === 'l') swipe('keep');
+    });
 }
 
 function escapeHtml(s) {
