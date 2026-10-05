@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 
-from flask import send_from_directory
+from flask import render_template, send_from_directory
 
 from .config import Config
 
@@ -14,21 +14,23 @@ def register_static_routes(app, config: Config) -> None:
     templates_dir = os.path.join(base_dir, "templates")
     static_dir = os.path.join(base_dir, "static")
 
+    app.template_folder = templates_dir
+
     @app.route("/")
     def index():
-        return send_from_directory(templates_dir, "vote.html")
+        return render_template("vote.html")
 
     @app.route("/login")
     def login_page():
-        return send_from_directory(templates_dir, "login.html")
+        return render_template("login.html")
 
     @app.route("/myvotes")
     def myvotes():
-        return send_from_directory(templates_dir, "myvotes.html")
+        return render_template("myvotes.html")
 
     @app.route("/results")
     def results_page():
-        return send_from_directory(templates_dir, "results.html")
+        return render_template("results.html")
 
     @app.route("/css/<path:path>")
     def css(path: str):

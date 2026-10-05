@@ -12,6 +12,8 @@ from flask_limiter.util import get_remote_address
 
 from .config import Config
 
+__version__ = "1.0.0"
+
 
 def create_app() -> Flask:
     load_dotenv()
@@ -32,6 +34,10 @@ def create_app() -> Flask:
         PERMANENT_SESSION_LIFETIME=86400 * 7,
     )
     app.config.from_mapping({"APP_CONFIG": config})
+
+    @app.context_processor
+    def inject_version():
+        return {"app_version": __version__}
 
     limiter = Limiter(get_remote_address, app=app, default_limits=[], storage_uri="memory://")
 
