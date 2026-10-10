@@ -11,6 +11,7 @@ from flask import jsonify, request, session
 
 from .auth import is_valid_username, require_auth
 from .config import Config
+from .media import write_json_atomic
 
 log = logging.getLogger("jellyfin_vote")
 
@@ -51,6 +52,5 @@ def register_votes_routes(app, config: Config) -> None:
         keep = [str(x) for x in data["keep"] if isinstance(x, (str, int))]
         remove = [str(x) for x in data["remove"] if isinstance(x, (str, int))]
         path = votes_file(config, username)
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump({"keep": keep, "remove": remove}, f)
+        write_json_atomic(path, {"keep": keep, "remove": remove})
         return "", 200

@@ -121,7 +121,7 @@ def test_cleanup_deletes_movie(arr_env, fake_arr, populated_media, authed_client
     _agree_remove(populated_media, authed_client_b, "item1")
     r = populated_media.post("/api/cleanup", json={"item_id": "item1"})
     assert r.status_code == 200
-    assert r.get_json() == {"status": "deleted", "name": "Test Movie"}
+    assert r.get_json() == {"status": "deleted", "name": "Test Movie", "local": True}
     assert fake_arr.deleted == [("movie", 11)]
 
 
@@ -159,3 +159,22 @@ def test_cleanup_forgets_item_everywhere(arr_env, fake_arr, app, populated_media
     removed_path = os.path.join(os.path.dirname(config.USERS_FILE), "removed.json")
     with open(removed_path, encoding="utf-8") as f:
         assert json.load(f) == ["item1"]
+
+
+def test_cleanup_still_reports_deleted_when_local_forget_fails(
+    arr_env, fake_arr, populated_media, authed_client_b, monkeypatch
+):
+    _agree_remove(populated_media, authed_client_b, "item1")
+
+    def _boom(config, item_id):
+        raise RuntimeError("media.json unreadable — aborting local forget")
+
+    monkeypatch.setattr("jellyfin_vote.cleanup.remove_item_everywhere", _boom)
+    r = populated_media.post("/api/cleanup", json={"item_id": "item1"})
+
+    assert r.status_code == 200
+    body = r.get_json()
+    assert body["status"] == "deleted"
+    assert body["local"] is False
+    assert "unreadable" in body["error"]
+    assert fake_arr.deleted == [("movie", 11)]

@@ -96,9 +96,14 @@ def register_cleanup_routes(app, config: Config, client: JellyfinClient) -> None
             return jsonify({"status": "error", "name": name, "error": str(exc)}), 502
 
         client.refresh_library()
-        remove_item_everywhere(config, item_id)
+        try:
+            remove_item_everywhere(config, item_id)
+        except RuntimeError as exc:
+            # The *arr delete already happened — report it, keep the reason.
+            log.error("Local forget failed for %s: %s", item_id, exc)
+            return jsonify({"status": "deleted", "name": name, "local": False, "error": str(exc)})
         log.info("Cleanup deleted %s (%s) from *arr", name, item_type)
-        return jsonify({"status": "deleted", "name": name})
+        return jsonify({"status": "deleted", "name": name, "local": True})
 
 
 def _raw_imdb_id(value: str) -> str | None:

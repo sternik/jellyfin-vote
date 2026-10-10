@@ -31,12 +31,22 @@ def load_removed_ids(config: Config) -> set[str]:
 
 
 def _save_removed_ids(config: Config, ids: set[str]) -> None:
-    with open(removed_ids_file(config), "w", encoding="utf-8") as f:
-        json.dump(sorted(ids), f)
+    write_json_atomic(removed_ids_file(config), sorted(ids))
+
+
+def write_json_atomic(path: str, data) -> None:
+    """Write JSON via a temp file so a crash cannot truncate the original."""
+    tmp = f"{path}.tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, path)
 
 
 def prune_stale_votes(config: Config, valid_ids: set[str]) -> None:
     """Drop votes referencing items no longer in the media library."""
+    if not valid_ids:
+        log.warning("prune_stale_votes: empty valid set — refusing to prune")
+        return
     data_dir = os.path.dirname(config.USERS_FILE)
     if not os.path.isdir(data_dir):
         return
@@ -53,13 +63,14 @@ def prune_stale_votes(config: Config, valid_ids: set[str]) -> None:
             continue
         if keep == votes.get("keep") and remove == votes.get("remove"):
             continue
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump({"keep": keep, "remove": remove}, f)
+        write_json_atomic(path, {"keep": keep, "remove": remove})
         log.info("Pruned stale votes from %s", fname)
 
 
 def refresh_media_items(config: Config, client: JellyfinClient) -> list[dict]:
-    items = client.list_items()
+    items = client.list_items()  # raises RuntimeError when Jellyfin is not 200
+    if not items:
+        raise RuntimeError("Jellyfin returned 0 items — refusing to overwrite media.json or votes")
 
     # Forget tombstones for items Jellyfin no longer has.
     fresh_ids = {item.get("Id") for item in items}
@@ -73,24 +84,24 @@ def refresh_media_items(config: Config, client: JellyfinClient) -> list[dict]:
         for item in items
         if item.get("Id") not in removed
     ]
-    with open(config.MEDIA_FILE, "w", encoding="utf-8") as f:
-        json.dump(media, f, ensure_ascii=False, indent=2)
+    write_json_atomic(config.MEDIA_FILE, media)
     prune_stale_votes(config, {m["id"] for m in media})
     return media
 
 
 def remove_item_everywhere(config: Config, item_id: str) -> None:
     """Forget an item: tombstone, media.json, and all votes files."""
-    _save_removed_ids(config, load_removed_ids(config) | {item_id})
-
     try:
         with open(config.MEDIA_FILE, encoding="utf-8") as f:
             media = json.load(f)
-    except (json.JSONDecodeError, OSError):
-        media = []
+    except (json.JSONDecodeError, OSError) as exc:
+        raise RuntimeError(f"media.json unreadable — aborting local forget: {exc}") from exc
+    if not isinstance(media, list):
+        raise RuntimeError("media.json is not a list — aborting local forget")
+
     media = [m for m in media if m.get("id") != item_id]
-    with open(config.MEDIA_FILE, "w", encoding="utf-8") as f:
-        json.dump(media, f, ensure_ascii=False, indent=2)
+    write_json_atomic(removed_ids_file(config), sorted(load_removed_ids(config) | {item_id}))
+    write_json_atomic(config.MEDIA_FILE, media)
 
     prune_stale_votes(config, {m.get("id") for m in media})
     log.info("Removed %s from media.json and votes", item_id)
@@ -101,7 +112,11 @@ def register_media_routes(app, config: Config, client: JellyfinClient) -> None:
     @require_auth
     def api_media():
         if not os.path.exists(config.MEDIA_FILE):
-            refresh_media_items(config, client)
+            try:
+                refresh_media_items(config, client)
+            except RuntimeError as exc:
+                log.error("Initial media load failed: %s", exc)
+                return jsonify({"error": str(exc)}), 502
         try:
             with open(config.MEDIA_FILE, encoding="utf-8") as f:
                 items = json.load(f)
@@ -112,7 +127,11 @@ def register_media_routes(app, config: Config, client: JellyfinClient) -> None:
     @app.route("/api/media/refresh", methods=["POST"])
     @require_auth
     def api_media_refresh():
-        refreshed = refresh_media_items(config, client)
+        try:
+            refreshed = refresh_media_items(config, client)
+        except RuntimeError as exc:
+            log.error("Media refresh refused: %s", exc)
+            return jsonify({"error": str(exc)}), 502
         return jsonify(refreshed)
 
     @app.route("/api/img/<item_id>")

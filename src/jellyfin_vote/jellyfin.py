@@ -60,7 +60,7 @@ class JellyfinClient:
         resp = self._http.get(endpoint, params=params)
         if resp.status_code != 200:
             log.error("Jellyfin list_items failed: %s %s", resp.status_code, resp.text[:200])
-            return []
+            raise RuntimeError(f"Jellyfin list_items returned {resp.status_code}")
         return resp.json().get("Items", [])
 
     def fetch_image(self, item_id: str) -> tuple[bytes, str] | None:
