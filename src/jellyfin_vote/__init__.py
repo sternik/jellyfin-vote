@@ -12,7 +12,7 @@ from flask_limiter.util import get_remote_address
 
 from .config import Config
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 
 def create_app() -> Flask:
@@ -50,6 +50,7 @@ def create_app() -> Flask:
         return jsonify({"error": "Server error"}), 500
 
     from .auth import register_auth_routes
+    from .cleanup import register_cleanup_routes
     from .jellyfin import JellyfinClient
     from .media import register_media_routes
     from .results import register_results_routes
@@ -61,6 +62,7 @@ def create_app() -> Flask:
     register_media_routes(app, config, client)
     register_votes_routes(app, config)
     register_results_routes(app, config)
+    register_cleanup_routes(app, config, client)
     register_static_routes(app, config)
 
     return app

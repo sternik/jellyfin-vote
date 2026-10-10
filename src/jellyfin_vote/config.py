@@ -17,6 +17,18 @@ class Config:
     MEDIA_FILE: str
     USERS_FILE: str
     CACHE_DIR: str
+    RADARR_URL: str | None
+    RADARR_API_KEY: str | None
+    SONARR_URL: str | None
+    SONARR_API_KEY: str | None
+
+    @property
+    def radarr_enabled(self) -> bool:
+        return bool(self.RADARR_URL and self.RADARR_API_KEY)
+
+    @property
+    def sonarr_enabled(self) -> bool:
+        return bool(self.SONARR_URL and self.SONARR_API_KEY)
 
     @staticmethod
     def from_env() -> Config:
@@ -44,4 +56,8 @@ class Config:
             MEDIA_FILE=os.environ.get("MEDIA_FILE", os.path.join(data_dir, "media.json")),
             USERS_FILE=os.environ.get("USERS_FILE", os.path.join(data_dir, "users.json")),
             CACHE_DIR=os.environ.get("CACHE_DIR", os.path.join(data_dir, "cache")),
+            RADARR_URL=os.environ.get("RADARR_URL", "").rstrip("/") or None,
+            RADARR_API_KEY=os.environ.get("RADARR_API_KEY") or None,
+            SONARR_URL=os.environ.get("SONARR_URL", "").rstrip("/") or None,
+            SONARR_API_KEY=os.environ.get("SONARR_API_KEY") or None,
         )

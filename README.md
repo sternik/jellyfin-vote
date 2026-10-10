@@ -34,6 +34,10 @@ agrees.
   (`All types` / `Movies` / `Series`).
 - **Results** — see exactly which items every user agreed to remove; filter by
   `All types` / `Movies` / `Series`.
+- **Sonarr / Radarr cleanup** — delete agreed items directly from *arr
+  (per-item, with confirmation); files are removed from disk, an import
+  exclusion prevents automatic re-adds, and Jellyfin rescans the library.
+  Enable by setting `RADARR_*` / `SONARR_*` env vars.
 - **Multi-user support** — each user keeps their own votes; an item is only
   flagged for deletion when *all* users voted to remove it.
 - **Jellyfin authentication** — log in with your existing Jellyfin credentials;
@@ -154,6 +158,23 @@ uv run gunicorn --bind 0.0.0.0:8000 --workers 2 "jellyfin_vote:create_app()"
 4. An item is marked for deletion only when **every** user voted to remove it.
 5. Check the **Results** page to see agreed-upon removals — use the type
    filter to narrow down to movies only or series only.
+
+## Cleanup (Sonarr / Radarr)
+
+When `RADARR_URL`/`RADARR_API_KEY` and/or `SONARR_URL`/`SONARR_API_KEY` are
+set, every card on the **Results** page gets a **Delete** button (only for
+items everyone agreed to remove):
+
+1. Confirm the dialog — files on disk are deleted permanently.
+2. The item is removed from Sonarr/Radarr with an import-list exclusion
+   (no automatic re-add from lists; manual re-add stays possible).
+3. The item is forgotten immediately: dropped from `media.json`, from every
+   `votes_*.json`, and tombstoned so the next **Refresh** does not bring it
+   back before Jellyfin finishes its scan.
+4. Jellyfin library refresh is triggered automatically.
+
+> **Note:** `RADARR_URL` / `SONARR_URL` must be reachable from the app
+> container, e.g. `http://sonarr:8989`, `http://radarr:7878`.
 
 ## Development
 

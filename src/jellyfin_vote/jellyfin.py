@@ -72,6 +72,15 @@ class JellyfinClient:
             return None
         return resp.content, resp.headers.get("Content-Type", "image/jpeg")
 
+    def refresh_library(self) -> bool:
+        """Trigger a Jellyfin library scan."""
+        resp = self._http.post(f"{self.url}/Library/Refresh")
+        if resp.status_code not in (200, 204):
+            log.error("Jellyfin library refresh failed: %s", resp.status_code)
+            return False
+        log.info("Jellyfin library refresh triggered")
+        return True
+
     @staticmethod
     def normalize(item: dict[str, Any], base_url: str) -> dict[str, Any]:
         provider_ids = item.get("ProviderIds", {}) or {}

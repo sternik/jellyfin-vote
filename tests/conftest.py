@@ -30,6 +30,9 @@ class FakeJellyfinClient:
     def fetch_image(self, item_id):
         return None
 
+    def refresh_library(self):
+        return True
+
     def authenticate_user(self, username, password):
         if username in TEST_USERS and TEST_USERS[username] == password:
             return {"user": username, "user_id": f"uid-{username}", "access_token": "tok"}
@@ -43,7 +46,13 @@ class FakeJellyfinClient:
 
 
 @pytest.fixture()
-def app(tmp_path, monkeypatch):  # noqa: C901
+def arr_overrides():
+    """*arr env vars a test wants set before the app is created."""
+    return {}
+
+
+@pytest.fixture()
+def app(tmp_path, monkeypatch, arr_overrides):  # noqa: C901
     """Flask app with isolated data dir and mocked Jellyfin API via httpx2."""
     data_dir = tmp_path / "data"
     data_dir.mkdir()
@@ -56,6 +65,12 @@ def app(tmp_path, monkeypatch):  # noqa: C901
     monkeypatch.setenv("MEDIA_FILE", str(data_dir / "media.json"))
     monkeypatch.setenv("USERS_FILE", str(data_dir / "users.json"))
     monkeypatch.setenv("CACHE_DIR", str(data_dir / "cache"))
+
+    # Block real .env leakage (load_dotenv never overrides existing vars).
+    for key in ("RADARR_URL", "RADARR_API_KEY", "SONARR_URL", "SONARR_API_KEY"):
+        monkeypatch.setenv(key, "")
+    for key, value in arr_overrides.items():
+        monkeypatch.setenv(key, value)
 
     # Prepare the fake HTTP transport used by JellyfinClient.list_items / fetch_image.
     items_path = FIXTURES / "jellyfin_items.json"

@@ -14,43 +14,47 @@ from .config import Config
 log = logging.getLogger("jellyfin_vote")
 
 
+def get_agreed_removals(config: Config) -> list[str]:
+    """IDs of items every user voted to remove."""
+    data_dir = os.path.dirname(config.USERS_FILE)
+
+    valid_ids: set[str] = set()
+    if os.path.exists(config.MEDIA_FILE):
+        try:
+            with open(config.MEDIA_FILE, encoding="utf-8") as f:
+                for item in json.load(f):
+                    valid_ids.add(item["id"])
+        except (json.JSONDecodeError, KeyError, TypeError):
+            pass
+
+    if not os.path.isdir(data_dir):
+        return []
+
+    remove_counts: dict[str, int] = {}
+    total_voters = 0
+
+    for fname in os.listdir(data_dir):
+        if not (fname.startswith("votes_") and fname.endswith(".json")):
+            continue
+        total_voters += 1
+        try:
+            with open(os.path.join(data_dir, fname), encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                for item_id in data.get("remove", []):
+                    if item_id in valid_ids:
+                        remove_counts[item_id] = remove_counts.get(item_id, 0) + 1
+        except (json.JSONDecodeError, OSError):
+            continue
+
+    if total_voters == 0:
+        return []
+
+    return [iid for iid, count in remove_counts.items() if count == total_voters]
+
+
 def register_results_routes(app, config: Config) -> None:
     @app.route("/api/results")
     @require_auth
     def results():
-        data_dir = os.path.dirname(config.USERS_FILE)
-
-        valid_ids: set[str] = set()
-        if os.path.exists(config.MEDIA_FILE):
-            try:
-                with open(config.MEDIA_FILE, encoding="utf-8") as f:
-                    for item in json.load(f):
-                        valid_ids.add(item["id"])
-            except (json.JSONDecodeError, KeyError, TypeError):
-                pass
-
-        if not os.path.isdir(data_dir):
-            return jsonify([])
-
-        remove_counts: dict[str, int] = {}
-        total_voters = 0
-
-        for fname in os.listdir(data_dir):
-            if not (fname.startswith("votes_") and fname.endswith(".json")):
-                continue
-            total_voters += 1
-            try:
-                with open(os.path.join(data_dir, fname), encoding="utf-8") as f:
-                    data = json.load(f)
-                if isinstance(data, dict):
-                    for item_id in data.get("remove", []):
-                        if item_id in valid_ids:
-                            remove_counts[item_id] = remove_counts.get(item_id, 0) + 1
-            except (json.JSONDecodeError, OSError):
-                continue
-
-        if total_voters == 0:
-            return jsonify([])
-
-        agreed = [iid for iid, count in remove_counts.items() if count == total_voters]
-        return jsonify([{"id": iid} for iid in agreed])
+        return jsonify([{"id": iid} for iid in get_agreed_removals(config)])
