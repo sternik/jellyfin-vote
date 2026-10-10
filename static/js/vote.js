@@ -81,7 +81,7 @@ function renderCard() {
                     <div class="card-title">${escapeHtml(m.name)}</div>
                     ${m.year ? `<div class="card-year">${m.year}</div>` : ''}
                     <div class="card-links">
-                        ${m.imdb ? `<a class="card-link" href="https://www.imdb.com/title/${m.imdb}" target="_blank" rel="noopener">IMDB</a>` : ''}
+                        ${m.imdb ? `<a class="card-link" href="${m.imdb.startsWith('http') ? m.imdb : 'https://www.imdb.com/title/' + m.imdb}" target="_blank" rel="noopener">IMDB</a>` : ''}
                         <a class="card-link" href="${m.link}" target="_blank" rel="noopener">Details</a>
                     </div>
                 </div>
