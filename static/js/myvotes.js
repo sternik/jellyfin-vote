@@ -73,6 +73,7 @@ function cardHtml(m) {
             ${meta ? `<div class="grid-meta">${meta}</div>` : ''}
             <div class="grid-footer">
                 <a class="card-link" href="${m.link}" target="_blank" rel="noopener">Details</a>
+                ${m.imdb ? `<a class="card-link" href="https://www.imdb.com/title/${m.imdb}" target="_blank" rel="noopener">IMDB</a>` : ''}
                 <button class="toggle-btn ${status}" onclick="toggle('${m.id}')">
                     <span class="label-current">${currentLabel}</span>
                     <span class="label-action">${actionLabel}</span>

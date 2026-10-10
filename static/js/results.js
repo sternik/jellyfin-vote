@@ -63,6 +63,7 @@ function cardHtml(r) {
             ${meta ? `<div class="grid-meta">${meta}</div>` : ''}
             <div class="grid-footer">
                 <a class="card-link" href="${m.link}" target="_blank" rel="noopener">Details</a>
+                ${m.imdb ? `<a class="card-link" href="https://www.imdb.com/title/${m.imdb}" target="_blank" rel="noopener">IMDB</a>` : ''}
             </div>
         </div>
     </div>`;

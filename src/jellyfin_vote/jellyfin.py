@@ -75,14 +75,14 @@ class JellyfinClient:
     @staticmethod
     def normalize(item: dict[str, Any], base_url: str) -> dict[str, Any]:
         provider_ids = item.get("ProviderIds", {}) or {}
-        imdb_id = provider_ids.get("IMDb")
+        imdb_id = next((v for k, v in provider_ids.items() if k.lower() == "imdb"), None)
         return {
             "id": item.get("Id"),
             "name": item.get("Name"),
             "type": item.get("Type"),
             "year": item.get("ProductionYear"),
             "overview": item.get("Overview"),
-            "imdb": f"https://www.imdb.com/title/{imdb_id}" if imdb_id else None,
+            "imdb": imdb_id,
             "poster": f"/api/img/{item.get('Id')}",
             "link": f"{base_url}/web/index.html#!/details?id={item.get('Id')}",
         }

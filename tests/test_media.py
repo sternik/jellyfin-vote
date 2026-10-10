@@ -28,7 +28,7 @@ def test_media_normalizes_items(populated_media):
     item1 = by_id["item1"]
     assert item1["type"] == "Movie"
     assert item1["year"] == 2020
-    assert item1["imdb"] == "https://www.imdb.com/title/tt0000001"
+    assert item1["imdb"] == "tt0000001"
     assert item1["link"].startswith("https://jellyfin.example.com/jellyfin/web")
     series = by_id["s1"]
     assert series["type"] == "Series"
